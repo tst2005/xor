@@ -2,7 +2,12 @@
 
 -- TODO: add (C) TsT
 
-local bit = require("bit") -- using the luajit
+local bit
+pcall(function() bit = require "bit" end) -- using the luajit
+pcall(function() bit = require "bit32" end) -- lua 5.2
+pcall(function() bit = require "bit.numberlua" end)
+assert(bit, "bit support required")
+
 local bxor = assert(bit.bxor, "bitwise support is required")
 
 local c2b = string.byte
