@@ -1,0 +1,1 @@
+../lua-aio-scripts/xor/make-all-in-one.sh
