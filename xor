@@ -1,5 +1,6 @@
 #!/usr/bin/env lua
-do local sources = {};sources["bit.numberlua"]=([===[-- <pack bit.numberlua> --
+do --{{
+local sources, priorities = {}, {};assert(not sources["bit.numberlua"],"module already exists")sources["bit.numberlua"]=([===[-- <pack bit.numberlua> --
 --[[
 
 LUA MODULE
@@ -545,10 +546,17 @@ function M.bit.bswap(x)
 end
 
 return M
-]===]):gsub('\\([%]%[]===[%]%[])','%1')
-local loadstring=loadstring; local preload = require"package".preload
-for name, rawcode in pairs(sources) do preload[name]=function(...)return loadstring(rawcode)(...)end end
-end;
+]===]):gsub('\\([%]%[]===)\\([%]%[])','%1%2')
+local loadstring=_G.loadstring or _G.load; local preload = require"package".preload
+local add = function(name, rawcode)
+	if not preload[name] then
+	        preload[name] = function(...) return assert(loadstring(rawcode), "loadstring: "..name.." failed")(...) end
+	else
+		print("WARNING: overwrite "..name)
+	end
+end
+for name, rawcode in pairs(sources) do add(name, rawcode, priorities[name]) end
+end; --}};
 
 -- TODO: add (C) TsT
 
