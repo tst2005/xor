@@ -5,13 +5,13 @@
 local os = require "os"
 local io = require "io"
 
-local c2b = string.sub
+local sub = string.sub
 
 local function main(args)
 
 	if #args < 1 or args[1]=="--help" or args[1]=="-h" then
 		print("Usage: "..(arg and arg[0] or "xor2.lua").." [-m] <file>")
-		print("It will result to stdout a alternate read (byte per byte) between stdin (master size) and <file>")
+		print("It will result to stdout an alternate read (byte per byte) between stdin (master size) and <file>")
 		print("if -m <file> is use then <file> becomes the master size")
 		return 1
 	end
@@ -27,30 +27,19 @@ local function main(args)
 	end
 
 	local stdout=io.stdout
-	local table_concat=table.concat
 	while true do
-		local B = nil
 		local m = mfd:read(BLOCKSIZE)
 		if not m then
 			break -- breaks if master eof reached
 		end
 		local s = sfd:read(#m) or "" -- if no data available, use an empty string
 		assert(#s<=#m)
-		if #s < #m then -- padding...
-			s = s .. ("\0"):rep(#m-#s)
+		for i=1,#s do
+			stdout:write( sub(m,i,i), sub(s,i,i) )
 		end
-		assert(#s==#m)
-
-		local function xor_str(aa,bb)
-			assert(#aa==#bb)
-			local tc = {}
-			for i=1,#aa do
-				tc[i] = c2b(aa,i,i) .. c2b(bb,i,i)
-			end
-			return table_concat(tc,"")
+		for i=#s+1,#m do
+			stdout:write( sub(m,i,i), "\0" )
 		end
-		local r = xor_str(m,s)
-		stdout:write(r)
 	end --/while
 
 	-- close all

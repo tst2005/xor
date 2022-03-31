@@ -12,9 +12,7 @@ assert(bit, "bit support required")
 local bxor = assert(bit.bxor, "bitwise support is required")
 
 local c2b = string.byte
-local string_char = string.char
---local b2c = function(b) return string_char( tonumber(b) ) end
-local b2c = string_char
+local b2c = string.char
 
 local function main(args)
 
@@ -25,7 +23,7 @@ local function main(args)
 		return 1
 	end
 
-	local BLOCKSIZE = 1024 --4096
+	local BLOCKSIZE = tonumber(os.getenv("XOR_BLOCKSIZE") or "") or 4096
 	local mfd,sfd
 	if arg[1]=="-m" then
 		mfd = io.open(args[2], "r")

@@ -12,12 +12,7 @@ assert(bit, "bit support required")
 local bxor = assert(bit.bxor, "bitwise support is required")
 
 local c2b = string.byte
-local string_char = string.char
-local b2c = function(b)
-	return string_char( tonumber( b
-		 --bit.band(0xff, b)
-	) )
-end
+local b2c = string.char
 
 local function main(args)
 
@@ -28,7 +23,7 @@ local function main(args)
 		return 1
 	end
 
-	local BLOCKSIZE = tonumber(os.getenv("XOR_BLOCKSIZE") or "") or 1024
+	local BLOCKSIZE = tonumber(os.getenv("XOR_BLOCKSIZE") or "") or 4096
 	local mfd,sfd
 	if arg[1]=="-m" then
 		mfd = io.open(args[2], "r")
@@ -39,32 +34,23 @@ local function main(args)
 	end
 
 	local stdout=io.stdout
-	local table_concat=table.concat
+	local ta,tb,m,s
 	while true do
-		local B = nil
-		local m = mfd:read(BLOCKSIZE)
+		m = mfd:read(BLOCKSIZE)
 		if not m then
 			break -- breaks if master eof reached
 		end
-		local s = sfd:read(#m) or "" -- if no data available, use an empty string
+		s = sfd:read(#m) or "" -- if no data available, use an empty string
 		assert(#s<=#m)
-		if #s < #m then -- padding...
-			s = s .. ("\0"):rep(#m-#s)
+		ta = {c2b(m,1,-1)}
+		tb = {c2b(s,1,-1)}
+		assert(#ta>=#tb)
+		for i=1,#tb do
+			stdout:write( b2c( bxor(ta[i], tb[i]) ) )
 		end
-		assert(#s==#m)
-
-		local function xor_str(aa,bb)
-			local ta = {c2b(aa,1,-1)}
-			local tb = {c2b(bb,1,-1)}
-			local tc = {}
-			assert(#ta==#tb)
-			for i=1,#ta do
-				tc[i] = b2c( bxor(ta[i], tb[i]) )
-			end
-			return table_concat(tc,"")
+		for i=#tb+1,#ta do
+			stdout:write( b2c( bxor(ta[i], 0) ) )
 		end
-		local r = xor_str(m,s)
-		stdout:write(r)
 	end --/while
 
 	-- close all

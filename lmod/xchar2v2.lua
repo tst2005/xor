@@ -2,6 +2,9 @@
 
 -- (c) 2015-2022 TsT tst2005@gmail.com. Licensed under the MIT License.
 
+local os = require "os"
+local io = require "io"
+
 local c2b = string.byte
 local b2c = string.char
 
@@ -9,12 +12,12 @@ local function main(args)
 
 	if #args < 1 or args[1]=="--help" or args[1]=="-h" then
 		print("Usage: "..(arg and arg[0] or "xor2.lua").." [-m] <file>")
-		print("It will result to stdout a XOR between stdin (master size) and <file>")
+		print("It will result to stdout an alternate read (byte per byte) between stdin (master size) and <file>")
 		print("if -m <file> is use then <file> becomes the master size")
 		return 1
 	end
 
-	local BLOCKSIZE = 1024 --4096
+	local BLOCKSIZE = tonumber(os.getenv("BLOCKSIZE") or "") or 1024
 	local mfd,sfd
 	if arg[1]=="-m" then
 		mfd = io.open(args[2], "r")
@@ -60,4 +63,4 @@ local function main(args)
 end
 
 local retcode = main {...}
-require"os".exit(retcode)
+os.exit(retcode)

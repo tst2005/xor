@@ -5,18 +5,27 @@
 local os = require "os"
 local io = require "io"
 
-local c2b = string.sub
+local bit
+pcall(function() bit = require "bit" end) -- using the luajit
+pcall(function() bit = require "bit32" end) -- lua 5.2
+pcall(function() bit = require "bit.numberlua" end)
+assert(bit, "bit support required")
+
+local bxor = assert(bit.bxor, "bitwise support is required")
+
+local c2b = string.byte -- char(string) to byte(number)
+local b2c = string.char -- byte(number) to char(string)
 
 local function main(args)
 
 	if #args < 1 or args[1]=="--help" or args[1]=="-h" then
 		print("Usage: "..(arg and arg[0] or "xor2.lua").." [-m] <file>")
-		print("It will result to stdout a alternate read (byte per byte) between stdin (master size) and <file>")
+		print("It will result to stdout a XOR between stdin (master size) and <file>")
 		print("if -m <file> is use then <file> becomes the master size")
 		return 1
 	end
 
-	local BLOCKSIZE = tonumber(os.getenv("BLOCKSIZE") or "") or 1024
+	local BLOCKSIZE = tonumber(os.getenv("XOR_BLOCKSIZE") or "") or 4096
 	local mfd,sfd
 	if arg[1]=="-m" then
 		mfd = io.open(args[2], "r")
@@ -27,30 +36,25 @@ local function main(args)
 	end
 
 	local stdout=io.stdout
-	local table_concat=table.concat
+	local function out_xor(a, b)
+		stdout:write( b2c( bxor(a, b) ) )
+	end
 	while true do
-		local B = nil
 		local m = mfd:read(BLOCKSIZE)
 		if not m then
 			break -- breaks if master eof reached
 		end
 		local s = sfd:read(#m) or "" -- if no data available, use an empty string
 		assert(#s<=#m)
-		if #s < #m then -- padding...
-			s = s .. ("\0"):rep(#m-#s)
+		local ta = {c2b(m,1,-1)}
+		local tb = {c2b(s,1,-1)}
+		assert(#ta>=#tb)
+		for i=1,#tb do
+			out_xor( ta[i], tb[i] )
 		end
-		assert(#s==#m)
-
-		local function xor_str(aa,bb)
-			assert(#aa==#bb)
-			local tc = {}
-			for i=1,#aa do
-				tc[i] = c2b(aa,i,i) .. c2b(bb,i,i)
-			end
-			return table_concat(tc,"")
+		for i=#tb+1,#ta do
+			out_xor( ta[i], 0 )
 		end
-		local r = xor_str(m,s)
-		stdout:write(r)
 	end --/while
 
 	-- close all
