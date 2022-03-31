@@ -37,6 +37,8 @@ local function main(args)
 		mfd = io.stdin
 		sfd = io.open(args[1], "r")
 	end
+	assert(mfd, "unable to open master file")
+	assert(sfd, "unable to open slave file")
 
 	local stdout=io.stdout
 	local table_concat=table.concat
