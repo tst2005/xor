@@ -54,8 +54,6 @@ local function main(files)
 				masters[#fds+1] = true
 			elseif file == "-w" or file == "--write" then
 				outfiles[i+1] = false
-			elseif file == "-o" or file == "--output" then
-				error("not implemented yet", 2)
 			else
 				fd = io.open(file, "r")
 			end
