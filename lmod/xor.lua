@@ -45,7 +45,7 @@ local function main(files)
 			else
 				fd = io.open(file, "wb")
 			end
-			outfiles[#fds] = fd
+			outfiles[#fds+1] = fd
 		else
 			local fd
 			if file == "-" then
