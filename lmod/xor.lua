@@ -22,13 +22,17 @@ end
 local function main(files)
 
 	if #files < 2 then
-		print("Usage: "..(arg and arg[0] or "xor.lua").." [<option>] <input> [<option>] <input> [[<option>] <input N>] [...]")
+		local prog = arg and arg[0] or "xor.lua"
+		print("Usage: "..prog.." [<option>] <input> [<option>] <input> [[<option>] <input N>] [...]")
 		print "Options:"
 		print "  -m|--master           stop everything at end-of-file of the next file argument"
 		print "  -w|--write <path>     the read input data will be write in the <path> file"
 		print "Inputs:"
 		print "  -                     use stdin as input"
 		print "  <path>                open and read the <path> file"
+		print "Example:"
+		print("  cat file | "..prog.." -m - -w r1.bin /dev/urandom -w r2.bin /dev/urandom > r3.bin")
+		print("  "..prog.." r1.bin r2.bin r3.bin")
 		return 1
 	end
 
